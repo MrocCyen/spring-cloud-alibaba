@@ -57,6 +57,7 @@ public class NacosPropertySourceLocator implements PropertySourceLocator {
 
 	private NacosConfigManager nacosConfigManager;
 
+
 	/**
 	 * recommend to use
 	 * {@link NacosPropertySourceLocator#NacosPropertySourceLocator(com.alibaba.cloud.nacos.NacosConfigManager)}.
