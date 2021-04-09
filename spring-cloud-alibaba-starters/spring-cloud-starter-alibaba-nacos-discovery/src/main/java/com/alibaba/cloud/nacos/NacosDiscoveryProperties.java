@@ -174,6 +174,7 @@ public class NacosDiscoveryProperties {
      * The port your want to register for your service instance, needn't to set it if the
      * auto detect port works well.
      */
+    //服务实例的端口
     private int port = -1;
 
     /**

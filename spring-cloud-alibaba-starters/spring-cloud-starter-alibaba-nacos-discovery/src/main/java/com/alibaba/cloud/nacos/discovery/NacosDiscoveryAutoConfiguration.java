@@ -40,6 +40,7 @@ public class NacosDiscoveryAutoConfiguration {
         return new NacosDiscoveryProperties();
     }
 
+    //注入nacos服务发现客户端
     @Bean
     @ConditionalOnMissingBean
     public NacosServiceDiscovery nacosServiceDiscovery(

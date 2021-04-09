@@ -36,146 +36,157 @@ import org.springframework.util.StringUtils;
 /**
  * @author xiaojing
  */
+//todo 弄清楚management是是什么
+//nacos服务实例
 public class NacosRegistration implements Registration, ServiceInstance {
 
-	/**
-	 * The metadata key of management port.
-	 */
-	public static final String MANAGEMENT_PORT = "management.port";
+    /**
+     * The metadata key of management port.
+     */
+    public static final String MANAGEMENT_PORT = "management.port";
 
-	/**
-	 * The metadata key of management context-path.
-	 */
-	public static final String MANAGEMENT_CONTEXT_PATH = "management.context-path";
+    /**
+     * The metadata key of management context-path.
+     */
+    public static final String MANAGEMENT_CONTEXT_PATH = "management.context-path";
 
-	/**
-	 * The metadata key of management address.
-	 */
-	public static final String MANAGEMENT_ADDRESS = "management.address";
+    /**
+     * The metadata key of management address.
+     */
+    public static final String MANAGEMENT_ADDRESS = "management.address";
 
-	/**
-	 * The metadata key of management endpoints web base path.
-	 */
-	public static final String MANAGEMENT_ENDPOINT_BASE_PATH = "management.endpoints.web.base-path";
+    /**
+     * The metadata key of management endpoints web base path.
+     */
+    public static final String MANAGEMENT_ENDPOINT_BASE_PATH = "management.endpoints.web.base-path";
 
-	private List<NacosRegistrationCustomizer> registrationCustomizers;
+    /**
+     * 注册定制器，用户自己实现
+     */
+    private List<NacosRegistrationCustomizer> registrationCustomizers;
 
-	private NacosDiscoveryProperties nacosDiscoveryProperties;
+    /**
+     * 配置属性
+     */
+    private NacosDiscoveryProperties nacosDiscoveryProperties;
 
-	private ApplicationContext context;
+    /**
+     * 应用上下文
+     */
+    private ApplicationContext context;
 
-	public NacosRegistration(List<NacosRegistrationCustomizer> registrationCustomizers,
-			NacosDiscoveryProperties nacosDiscoveryProperties,
-			ApplicationContext context) {
-		this.registrationCustomizers = registrationCustomizers;
-		this.nacosDiscoveryProperties = nacosDiscoveryProperties;
-		this.context = context;
-	}
+    public NacosRegistration(List<NacosRegistrationCustomizer> registrationCustomizers,
+                             NacosDiscoveryProperties nacosDiscoveryProperties,
+                             ApplicationContext context) {
+        this.registrationCustomizers = registrationCustomizers;
+        this.nacosDiscoveryProperties = nacosDiscoveryProperties;
+        this.context = context;
+    }
 
-	@PostConstruct
-	public void init() {
+    @PostConstruct
+    public void init() {
 
-		Map<String, String> metadata = nacosDiscoveryProperties.getMetadata();
-		Environment env = context.getEnvironment();
+        Map<String, String> metadata = nacosDiscoveryProperties.getMetadata();
+        Environment env = context.getEnvironment();
 
-		String endpointBasePath = env.getProperty(MANAGEMENT_ENDPOINT_BASE_PATH);
-		if (!StringUtils.isEmpty(endpointBasePath)) {
-			metadata.put(MANAGEMENT_ENDPOINT_BASE_PATH, endpointBasePath);
-		}
+        String endpointBasePath = env.getProperty(MANAGEMENT_ENDPOINT_BASE_PATH);
+        if (!StringUtils.isEmpty(endpointBasePath)) {
+            metadata.put(MANAGEMENT_ENDPOINT_BASE_PATH, endpointBasePath);
+        }
 
-		Integer managementPort = ManagementServerPortUtils.getPort(context);
-		if (null != managementPort) {
-			metadata.put(MANAGEMENT_PORT, managementPort.toString());
-			String contextPath = env
-					.getProperty("management.server.servlet.context-path");
-			String address = env.getProperty("management.server.address");
-			if (!StringUtils.isEmpty(contextPath)) {
-				metadata.put(MANAGEMENT_CONTEXT_PATH, contextPath);
-			}
-			if (!StringUtils.isEmpty(address)) {
-				metadata.put(MANAGEMENT_ADDRESS, address);
-			}
-		}
+        Integer managementPort = ManagementServerPortUtils.getPort(context);
+        if (null != managementPort) {
+            metadata.put(MANAGEMENT_PORT, managementPort.toString());
+            String contextPath = env.getProperty("management.server.servlet.context-path");
+            if (!StringUtils.isEmpty(contextPath)) {
+                metadata.put(MANAGEMENT_CONTEXT_PATH, contextPath);
+            }
+            String address = env.getProperty("management.server.address");
+            if (!StringUtils.isEmpty(address)) {
+                metadata.put(MANAGEMENT_ADDRESS, address);
+            }
+        }
 
-		if (null != nacosDiscoveryProperties.getHeartBeatInterval()) {
-			metadata.put(PreservedMetadataKeys.HEART_BEAT_INTERVAL,
-					nacosDiscoveryProperties.getHeartBeatInterval().toString());
-		}
-		if (null != nacosDiscoveryProperties.getHeartBeatTimeout()) {
-			metadata.put(PreservedMetadataKeys.HEART_BEAT_TIMEOUT,
-					nacosDiscoveryProperties.getHeartBeatTimeout().toString());
-		}
-		if (null != nacosDiscoveryProperties.getIpDeleteTimeout()) {
-			metadata.put(PreservedMetadataKeys.IP_DELETE_TIMEOUT,
-					nacosDiscoveryProperties.getIpDeleteTimeout().toString());
-		}
-		customize(registrationCustomizers, this);
-	}
+        if (null != nacosDiscoveryProperties.getHeartBeatInterval()) {
+            metadata.put(PreservedMetadataKeys.HEART_BEAT_INTERVAL,
+                    nacosDiscoveryProperties.getHeartBeatInterval().toString());
+        }
+        if (null != nacosDiscoveryProperties.getHeartBeatTimeout()) {
+            metadata.put(PreservedMetadataKeys.HEART_BEAT_TIMEOUT,
+                    nacosDiscoveryProperties.getHeartBeatTimeout().toString());
+        }
+        if (null != nacosDiscoveryProperties.getIpDeleteTimeout()) {
+            metadata.put(PreservedMetadataKeys.IP_DELETE_TIMEOUT,
+                    nacosDiscoveryProperties.getIpDeleteTimeout().toString());
+        }
+        //上面都在处理元数据
+        customize(registrationCustomizers, this);
+    }
 
-	private static void customize(
-			List<NacosRegistrationCustomizer> registrationCustomizers,
-			NacosRegistration registration) {
-		if (registrationCustomizers != null) {
-			for (NacosRegistrationCustomizer customizer : registrationCustomizers) {
-				customizer.customize(registration);
-			}
-		}
-	}
+    //自定义处理
+    private void customize(List<NacosRegistrationCustomizer> registrationCustomizers,
+                           NacosRegistration registration) {
+        if (registrationCustomizers != null) {
+            for (NacosRegistrationCustomizer customizer : registrationCustomizers) {
+                customizer.customize(registration);
+            }
+        }
+    }
 
-	@Override
-	public String getServiceId() {
-		return nacosDiscoveryProperties.getService();
-	}
+    @Override
+    public String getServiceId() {
+        return nacosDiscoveryProperties.getService();
+    }
 
-	@Override
-	public String getHost() {
-		return nacosDiscoveryProperties.getIp();
-	}
+    @Override
+    public String getHost() {
+        return nacosDiscoveryProperties.getIp();
+    }
 
-	@Override
-	public int getPort() {
-		return nacosDiscoveryProperties.getPort();
-	}
+    @Override
+    public int getPort() {
+        return nacosDiscoveryProperties.getPort();
+    }
 
-	public void setPort(int port) {
-		this.nacosDiscoveryProperties.setPort(port);
-	}
+    public void setPort(int port) {
+        this.nacosDiscoveryProperties.setPort(port);
+    }
 
-	@Override
-	public boolean isSecure() {
-		return nacosDiscoveryProperties.isSecure();
-	}
+    @Override
+    public boolean isSecure() {
+        return nacosDiscoveryProperties.isSecure();
+    }
 
-	@Override
-	public URI getUri() {
-		return DefaultServiceInstance.getUri(this);
-	}
+    @Override
+    public URI getUri() {
+        return DefaultServiceInstance.getUri(this);
+    }
 
-	@Override
-	public Map<String, String> getMetadata() {
-		return nacosDiscoveryProperties.getMetadata();
-	}
+    @Override
+    public Map<String, String> getMetadata() {
+        return nacosDiscoveryProperties.getMetadata();
+    }
 
-	public boolean isRegisterEnabled() {
-		return nacosDiscoveryProperties.isRegisterEnabled();
-	}
+    public boolean isRegisterEnabled() {
+        return nacosDiscoveryProperties.isRegisterEnabled();
+    }
 
-	public String getCluster() {
-		return nacosDiscoveryProperties.getClusterName();
-	}
+    public String getCluster() {
+        return nacosDiscoveryProperties.getClusterName();
+    }
 
-	public float getRegisterWeight() {
-		return nacosDiscoveryProperties.getWeight();
-	}
+    public float getRegisterWeight() {
+        return nacosDiscoveryProperties.getWeight();
+    }
 
-	public NacosDiscoveryProperties getNacosDiscoveryProperties() {
-		return nacosDiscoveryProperties;
-	}
+    public NacosDiscoveryProperties getNacosDiscoveryProperties() {
+        return nacosDiscoveryProperties;
+    }
 
-	@Override
-	public String toString() {
-		return "NacosRegistration{" + "nacosDiscoveryProperties="
-				+ nacosDiscoveryProperties + '}';
-	}
+    @Override
+    public String toString() {
+        return "NacosRegistration{" + "nacosDiscoveryProperties="
+                + nacosDiscoveryProperties + '}';
+    }
 
 }

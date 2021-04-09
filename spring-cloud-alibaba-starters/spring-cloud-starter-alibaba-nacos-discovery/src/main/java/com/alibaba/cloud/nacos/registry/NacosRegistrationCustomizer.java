@@ -19,12 +19,14 @@ package com.alibaba.cloud.nacos.registry;
 /**
  * @author L.cm
  */
+//用户自己实现
 public interface NacosRegistrationCustomizer {
 
-	/**
-	 * customize NacosRegistration.
-	 * @param registration NacosRegistration
-	 */
-	void customize(NacosRegistration registration);
+    /**
+     * customize NacosRegistration.
+     *
+     * @param registration NacosRegistration
+     */
+    void customize(NacosRegistration registration);
 
 }

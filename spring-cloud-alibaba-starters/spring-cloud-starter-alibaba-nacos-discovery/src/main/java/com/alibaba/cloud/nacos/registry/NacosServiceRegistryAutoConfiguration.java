@@ -41,37 +41,35 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties
 @ConditionalOnNacosDiscoveryEnabled
-@ConditionalOnProperty(value = "spring.cloud.service-registry.auto-registration.enabled",
-		matchIfMissing = true)
-@AutoConfigureAfter({ AutoServiceRegistrationConfiguration.class,
-		AutoServiceRegistrationAutoConfiguration.class,
-		NacosDiscoveryAutoConfiguration.class })
+@ConditionalOnProperty(value = "spring.cloud.service-registry.auto-registration.enabled", matchIfMissing = true)
+@AutoConfigureAfter({AutoServiceRegistrationConfiguration.class, AutoServiceRegistrationAutoConfiguration.class,
+        NacosDiscoveryAutoConfiguration.class})
 public class NacosServiceRegistryAutoConfiguration {
 
-	@Bean
-	public NacosServiceRegistry nacosServiceRegistry(
-			NacosDiscoveryProperties nacosDiscoveryProperties) {
-		return new NacosServiceRegistry(nacosDiscoveryProperties);
-	}
+    //注入nacos服务注册
+    @Bean
+    public NacosServiceRegistry nacosServiceRegistry(NacosDiscoveryProperties nacosDiscoveryProperties) {
+        return new NacosServiceRegistry(nacosDiscoveryProperties);
+    }
 
-	@Bean
-	@ConditionalOnBean(AutoServiceRegistrationProperties.class)
-	public NacosRegistration nacosRegistration(
-			ObjectProvider<List<NacosRegistrationCustomizer>> registrationCustomizers,
-			NacosDiscoveryProperties nacosDiscoveryProperties,
-			ApplicationContext context) {
-		return new NacosRegistration(registrationCustomizers.getIfAvailable(),
-				nacosDiscoveryProperties, context);
-	}
+    //注入nacos服务实例
+    @Bean
+    @ConditionalOnBean(AutoServiceRegistrationProperties.class)
+    public NacosRegistration nacosRegistration(ObjectProvider<List<NacosRegistrationCustomizer>> registrationCustomizers,
+                                               NacosDiscoveryProperties nacosDiscoveryProperties,
+                                               ApplicationContext context) {
+        return new NacosRegistration(registrationCustomizers.getIfAvailable(),
+                nacosDiscoveryProperties, context);
+    }
 
-	@Bean
-	@ConditionalOnBean(AutoServiceRegistrationProperties.class)
-	public NacosAutoServiceRegistration nacosAutoServiceRegistration(
-			NacosServiceRegistry registry,
-			AutoServiceRegistrationProperties autoServiceRegistrationProperties,
-			NacosRegistration registration) {
-		return new NacosAutoServiceRegistration(registry,
-				autoServiceRegistrationProperties, registration);
-	}
+    //注入nacos自动服务注入
+    @Bean
+    @ConditionalOnBean(AutoServiceRegistrationProperties.class)
+    public NacosAutoServiceRegistration nacosAutoServiceRegistration(NacosServiceRegistry registry,
+                                                                     AutoServiceRegistrationProperties autoServiceRegistrationProperties,
+                                                                     NacosRegistration registration) {
+        return new NacosAutoServiceRegistration(registry,
+                autoServiceRegistrationProperties, registration);
+    }
 
 }
