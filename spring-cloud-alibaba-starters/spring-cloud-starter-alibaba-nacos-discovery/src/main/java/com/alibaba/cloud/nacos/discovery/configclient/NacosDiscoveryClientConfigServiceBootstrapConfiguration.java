@@ -32,13 +32,14 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author JevonYang
  */
+//帮助配置客户端通过服务发现寻找配置服务器
 @ConditionalOnClass(ConfigServicePropertySourceLocator.class)
-@ConditionalOnProperty(value = "spring.cloud.config.discovery.enabled",
-		matchIfMissing = false)
+//默认不开启，spring.cloud.config.discovery.enabled=false
+@ConditionalOnProperty(value = "spring.cloud.config.discovery.enabled", matchIfMissing = false)
 @Configuration(proxyBeanMethods = false)
-@ImportAutoConfiguration({ NacosDiscoveryAutoConfiguration.class,
+@ImportAutoConfiguration({NacosDiscoveryAutoConfiguration.class,
 		NacosServiceAutoConfiguration.class, NacosDiscoveryClientConfiguration.class,
-		NacosReactiveDiscoveryClientConfiguration.class })
+		NacosReactiveDiscoveryClientConfiguration.class})
 public class NacosDiscoveryClientConfigServiceBootstrapConfiguration {
 
 }

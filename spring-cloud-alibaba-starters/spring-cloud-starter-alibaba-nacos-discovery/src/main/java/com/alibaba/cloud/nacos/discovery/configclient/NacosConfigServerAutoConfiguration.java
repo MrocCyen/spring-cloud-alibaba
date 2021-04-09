@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties
-@ConditionalOnClass({ NacosDiscoveryProperties.class, ConfigServerProperties.class })
+@ConditionalOnClass({NacosDiscoveryProperties.class, ConfigServerProperties.class})
 public class NacosConfigServerAutoConfiguration {
 
 	@Autowired(required = false)
@@ -49,8 +49,8 @@ public class NacosConfigServerAutoConfiguration {
 			return;
 		}
 		String prefix = this.server.getPrefix();
-		if (StringUtils.hasText(prefix) && !StringUtils
-				.hasText(this.properties.getMetadata().get("configPath"))) {
+		//给metadata添加configPath值
+		if (StringUtils.hasText(prefix) && !StringUtils.hasText(this.properties.getMetadata().get("configPath"))) {
 			this.properties.getMetadata().put("configPath", prefix);
 		}
 	}
