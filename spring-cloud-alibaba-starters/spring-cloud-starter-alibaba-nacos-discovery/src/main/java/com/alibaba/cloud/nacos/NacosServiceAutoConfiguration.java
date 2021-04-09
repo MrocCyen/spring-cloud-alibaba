@@ -24,13 +24,20 @@ import org.springframework.context.annotation.Configuration;
  * @author yuhuangbin
  */
 @Configuration(proxyBeanMethods = false)
+//spring.cloud.discovery.enabled=true
 @ConditionalOnDiscoveryEnabled
+//spring.cloud.nacos.discovery.enabled=true
 @ConditionalOnNacosDiscoveryEnabled
 public class NacosServiceAutoConfiguration {
 
-	@Bean
-	public NacosServiceManager nacosServiceManager() {
-		return new NacosServiceManager();
-	}
+    /**
+     * 向容器注入NacosServiceManager
+     *
+     * @return
+     */
+    @Bean
+    public NacosServiceManager nacosServiceManager() {
+        return new NacosServiceManager();
+    }
 
 }

@@ -23,10 +23,13 @@ import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+/**
+ * 是否开启nacos服务发现
+ */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
-@ConditionalOnProperty(value = "spring.cloud.nacos.discovery.enabled",
-		matchIfMissing = true)
+@Target({ElementType.TYPE, ElementType.METHOD})
+//默认是true，开启
+@ConditionalOnProperty(value = "spring.cloud.nacos.discovery.enabled", matchIfMissing = true)
 public @interface ConditionalOnNacosDiscoveryEnabled {
 
 }

@@ -37,98 +37,133 @@ import static org.springframework.beans.BeanUtils.copyProperties;
 /**
  * @author yuhuangbin
  */
+//nacos命名服务管理
 public class NacosServiceManager {
 
-	private static final Logger log = LoggerFactory.getLogger(NacosServiceManager.class);
+    private static final Logger log = LoggerFactory.getLogger(NacosServiceManager.class);
 
-	private NacosDiscoveryProperties nacosDiscoveryPropertiesCache;
+    //nacos属性配置
+    private NacosDiscoveryProperties nacosDiscoveryPropertiesCache;
 
-	private NamingService namingService;
+    //命名服务
+    private NamingService namingService;
 
-	private NamingMaintainService namingMaintainService;
+    //nacos相关命名操作服务
+    private NamingMaintainService namingMaintainService;
 
-	public NamingService getNamingService(Properties properties) {
-		if (Objects.isNull(this.namingService)) {
-			buildNamingService(properties);
-		}
-		return namingService;
-	}
+    /**
+     * 获取命名服务
+     *
+     * @param properties
+     * @return
+     */
+    public NamingService getNamingService(Properties properties) {
+        if (Objects.isNull(this.namingService)) {
+            buildNamingService(properties);
+        }
+        return namingService;
+    }
 
-	public NamingMaintainService getNamingMaintainService(Properties properties) {
-		if (Objects.isNull(namingMaintainService)) {
-			buildNamingMaintainService(properties);
-		}
-		return namingMaintainService;
-	}
+    /**
+     * 获取nacos相关命名操作服务
+     *
+     * @param properties
+     * @return
+     */
+    public NamingMaintainService getNamingMaintainService(Properties properties) {
+        if (Objects.isNull(namingMaintainService)) {
+            buildNamingMaintainService(properties);
+        }
+        return namingMaintainService;
+    }
 
-	public boolean isNacosDiscoveryInfoChanged(
-			NacosDiscoveryProperties nacosDiscoveryProperties) {
-		if (Objects.isNull(nacosDiscoveryPropertiesCache)
-				|| this.nacosDiscoveryPropertiesCache.equals(nacosDiscoveryProperties)) {
-			return false;
-		}
-		copyProperties(nacosDiscoveryProperties, nacosDiscoveryPropertiesCache);
-		return true;
-	}
+    //判断是否nacosDiscoveryPropertiesCache是否和nacosDiscoveryProperties相等
+    //然后不等得话重新赋值给nacosDiscoveryPropertiesCache
+    public boolean isNacosDiscoveryInfoChanged(
+            NacosDiscoveryProperties nacosDiscoveryProperties) {
+        if (Objects.isNull(nacosDiscoveryPropertiesCache)
+                || this.nacosDiscoveryPropertiesCache.equals(nacosDiscoveryProperties)) {
+            return false;
+        }
+        copyProperties(nacosDiscoveryProperties, nacosDiscoveryPropertiesCache);
+        return true;
+    }
 
-	private NamingMaintainService buildNamingMaintainService(Properties properties) {
-		if (Objects.isNull(namingMaintainService)) {
-			synchronized (NacosServiceManager.class) {
-				if (Objects.isNull(namingMaintainService)) {
-					namingMaintainService = createNamingMaintainService(properties);
-				}
-			}
-		}
-		return namingMaintainService;
-	}
+    private NamingMaintainService buildNamingMaintainService(Properties properties) {
+        //双重判断
+        if (Objects.isNull(namingMaintainService)) {
+            synchronized (NacosServiceManager.class) {
+                if (Objects.isNull(namingMaintainService)) {
+                    namingMaintainService = createNamingMaintainService(properties);
+                }
+            }
+        }
+        return namingMaintainService;
+    }
 
-	private NamingService buildNamingService(Properties properties) {
-		if (Objects.isNull(namingService)) {
-			synchronized (NacosServiceManager.class) {
-				if (Objects.isNull(namingService)) {
-					namingService = createNewNamingService(properties);
-				}
-			}
-		}
-		return namingService;
-	}
+    private NamingService buildNamingService(Properties properties) {
+        //双重判断
+        if (Objects.isNull(namingService)) {
+            synchronized (NacosServiceManager.class) {
+                if (Objects.isNull(namingService)) {
+                    namingService = createNewNamingService(properties);
+                }
+            }
+        }
+        return namingService;
+    }
 
-	private NamingService createNewNamingService(Properties properties) {
-		try {
-			return createNamingService(properties);
-		}
-		catch (NacosException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    /**
+     * 创建命名服务
+     *
+     * @param properties
+     * @return
+     */
+    private NamingService createNewNamingService(Properties properties) {
+        try {
+            return createNamingService(properties);
+        } catch (NacosException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private NamingMaintainService createNamingMaintainService(Properties properties) {
-		try {
-			return createMaintainService(properties);
-		}
-		catch (NacosException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    /**
+     * 创建nacos相关命名操作服务
+     *
+     * @param properties
+     * @return
+     */
+    private NamingMaintainService createNamingMaintainService(Properties properties) {
+        try {
+            return createMaintainService(properties);
+        } catch (NacosException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	public void nacosServiceShutDown() throws NacosException {
-		this.namingService.shutDown();
-		namingService = null;
-		namingMaintainService = null;
-	}
+    /**
+     * 关闭命名服务
+     *
+     * @throws NacosException
+     */
+    public void nacosServiceShutDown() throws NacosException {
+        this.namingService.shutDown();
+        namingService = null;
+        namingMaintainService = null;
+    }
 
-	@EventListener
-	public void onInstancePreRegisteredEvent(
-			InstancePreRegisteredEvent instancePreRegisteredEvent) {
-		Registration registration = instancePreRegisteredEvent.getRegistration();
-		if (Objects.isNull(nacosDiscoveryPropertiesCache)
-				&& registration instanceof NacosRegistration) {
-			NacosDiscoveryProperties nacosDiscoveryProperties = ((NacosRegistration) registration)
-					.getNacosDiscoveryProperties();
+    @EventListener
+    public void onInstancePreRegisteredEvent(
+            InstancePreRegisteredEvent instancePreRegisteredEvent) {
+        Registration registration = instancePreRegisteredEvent.getRegistration();
+        if (Objects.isNull(nacosDiscoveryPropertiesCache)
+                && registration instanceof NacosRegistration) {
+            NacosDiscoveryProperties nacosDiscoveryProperties = ((NacosRegistration) registration)
+                    .getNacosDiscoveryProperties();
 
-			nacosDiscoveryPropertiesCache = new NacosDiscoveryProperties();
-			copyProperties(nacosDiscoveryProperties, nacosDiscoveryPropertiesCache);
-		}
-	}
+            nacosDiscoveryPropertiesCache = new NacosDiscoveryProperties();
+            copyProperties(nacosDiscoveryProperties, nacosDiscoveryPropertiesCache);
+        }
+    }
 
 }
