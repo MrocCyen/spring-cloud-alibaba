@@ -46,20 +46,18 @@ public class NacosDiscoveryEndpointAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnAvailableEndpoint
-	public NacosDiscoveryEndpoint nacosDiscoveryEndpoint(
-			NacosServiceManager nacosServiceManager,
-			NacosDiscoveryProperties nacosDiscoveryProperties) {
+	public NacosDiscoveryEndpoint nacosDiscoveryEndpoint(NacosServiceManager nacosServiceManager,
+	                                                     NacosDiscoveryProperties nacosDiscoveryProperties) {
 		return new NacosDiscoveryEndpoint(nacosServiceManager, nacosDiscoveryProperties);
 	}
 
+	//健康指标
 	@Bean
 	@ConditionalOnEnabledHealthIndicator("nacos-discovery")
-	public HealthIndicator nacosDiscoveryHealthIndicator(
-			NacosServiceManager nacosServiceManager,
-			NacosDiscoveryProperties nacosDiscoveryProperties) {
+	public HealthIndicator nacosDiscoveryHealthIndicator(NacosServiceManager nacosServiceManager,
+	                                                     NacosDiscoveryProperties nacosDiscoveryProperties) {
 		Properties nacosProperties = nacosDiscoveryProperties.getNacosProperties();
-		return new NacosDiscoveryHealthIndicator(
-				nacosServiceManager.getNamingService(nacosProperties));
+		return new NacosDiscoveryHealthIndicator(nacosServiceManager.getNamingService(nacosProperties));
 	}
 
 }

@@ -26,8 +26,8 @@ import org.springframework.boot.actuate.health.HealthIndicator;
  * The {@link HealthIndicator} for Nacos Discovery.
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
- * @since 2.2.0
  * @see HealthIndicator
+ * @since 2.2.0
  */
 public class NacosDiscoveryHealthIndicator extends AbstractHealthIndicator {
 
@@ -44,15 +44,15 @@ public class NacosDiscoveryHealthIndicator extends AbstractHealthIndicator {
 		// Set the status to Builder
 		builder.status(status);
 		switch (status) {
-		case "UP":
-			builder.up();
-			break;
-		case "DOWN":
-			builder.down();
-			break;
-		default:
-			builder.unknown();
-			break;
+			case "UP":
+				builder.up();
+				break;
+			case "DOWN":
+				builder.down();
+				break;
+			default:
+				builder.unknown();
+				break;
 		}
 	}
 
