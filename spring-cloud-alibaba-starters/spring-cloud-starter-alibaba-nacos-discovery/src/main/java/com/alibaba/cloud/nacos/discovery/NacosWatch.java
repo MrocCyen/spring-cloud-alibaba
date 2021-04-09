@@ -16,10 +16,7 @@
 
 package com.alibaba.cloud.nacos.discovery;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,7 +47,10 @@ public class NacosWatch implements ApplicationEventPublisherAware, SmartLifecycl
 
 	private static final Logger log = LoggerFactory.getLogger(NacosWatch.class);
 
-	private Map<String, EventListener> listenerMap = new ConcurrentHashMap<>(16);
+	/**
+	 * 命名服务监听器
+	 */
+	private final Map<String, EventListener> listenerMap = new ConcurrentHashMap<>(16);
 
 	private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -60,18 +60,19 @@ public class NacosWatch implements ApplicationEventPublisherAware, SmartLifecycl
 
 	private ScheduledFuture<?> watchFuture;
 
-	private NacosServiceManager nacosServiceManager;
+	private final NacosServiceManager nacosServiceManager;
 
 	private final NacosDiscoveryProperties properties;
 
 	private final ThreadPoolTaskScheduler taskScheduler;
 
 	public NacosWatch(NacosServiceManager nacosServiceManager,
-			NacosDiscoveryProperties properties,
-			ObjectProvider<ThreadPoolTaskScheduler> taskScheduler) {
+	                  NacosDiscoveryProperties properties,
+	                  ObjectProvider<ThreadPoolTaskScheduler> taskScheduler) {
 		this.nacosServiceManager = nacosServiceManager;
 		this.properties = properties;
-		this.taskScheduler = taskScheduler.stream().findAny()
+		this.taskScheduler = taskScheduler.stream()
+				.findAny()
 				.orElseGet(NacosWatch::getTaskScheduler);
 	}
 
@@ -101,34 +102,31 @@ public class NacosWatch implements ApplicationEventPublisherAware, SmartLifecycl
 	@Override
 	public void start() {
 		if (this.running.compareAndSet(false, true)) {
+			//key为service名:group名
 			EventListener eventListener = listenerMap.computeIfAbsent(buildKey(),
 					event -> new EventListener() {
 						@Override
 						public void onEvent(Event event) {
 							if (event instanceof NamingEvent) {
-								List<Instance> instances = ((NamingEvent) event)
-										.getInstances();
-								Optional<Instance> instanceOptional = selectCurrentInstance(
-										instances);
-								instanceOptional.ifPresent(currentInstance -> {
-									resetIfNeeded(currentInstance);
-								});
+								//事件里面的服务实例
+								List<Instance> instances = ((NamingEvent) event).getInstances();
+								//选择当前的服务实例
+								Optional<Instance> instanceOptional = selectCurrentInstance(instances);
+								//重新设置当前的实例
+								instanceOptional.ifPresent(currentInstance -> resetIfNeeded(currentInstance));
 							}
 						}
 					});
 
-			NamingService namingService = nacosServiceManager
-					.getNamingService(properties.getNacosProperties());
+			NamingService namingService = nacosServiceManager.getNamingService(properties.getNacosProperties());
 			try {
-				namingService.subscribe(properties.getService(), properties.getGroup(),
-						Arrays.asList(properties.getClusterName()), eventListener);
-			}
-			catch (Exception e) {
+				namingService.subscribe(properties.getService(), properties.getGroup(), Collections.singletonList(properties.getClusterName()), eventListener);
+			} catch (Exception e) {
 				log.error("namingService subscribe failed, properties:{}", properties, e);
 			}
 
-			this.watchFuture = this.taskScheduler.scheduleWithFixedDelay(
-					this::nacosServicesWatch, this.properties.getWatchDelay());
+			//间隔执行nacosServicesWatch
+			this.watchFuture = this.taskScheduler.scheduleWithFixedDelay(this::nacosServicesWatch, this.properties.getWatchDelay());
 		}
 	}
 
@@ -137,6 +135,7 @@ public class NacosWatch implements ApplicationEventPublisherAware, SmartLifecycl
 	}
 
 	private void resetIfNeeded(Instance instance) {
+		//设置metadata
 		if (!properties.getMetadata().equals(instance.getMetadata())) {
 			properties.setMetadata(instance.getMetadata());
 		}
@@ -144,8 +143,7 @@ public class NacosWatch implements ApplicationEventPublisherAware, SmartLifecycl
 
 	private Optional<Instance> selectCurrentInstance(List<Instance> instances) {
 		return instances.stream()
-				.filter(instance -> properties.getIp().equals(instance.getIp())
-						&& properties.getPort() == instance.getPort())
+				.filter(instance -> properties.getIp().equals(instance.getIp()) && properties.getPort() == instance.getPort())
 				.findFirst();
 	}
 
@@ -161,12 +159,9 @@ public class NacosWatch implements ApplicationEventPublisherAware, SmartLifecycl
 
 			EventListener eventListener = listenerMap.get(buildKey());
 			try {
-				NamingService namingService = nacosServiceManager
-						.getNamingService(properties.getNacosProperties());
-				namingService.unsubscribe(properties.getService(), properties.getGroup(),
-						Arrays.asList(properties.getClusterName()), eventListener);
-			}
-			catch (Exception e) {
+				NamingService namingService = nacosServiceManager.getNamingService(properties.getNacosProperties());
+				namingService.unsubscribe(properties.getService(), properties.getGroup(), Collections.singletonList(properties.getClusterName()), eventListener);
+			} catch (Exception e) {
 				log.error("namingService unsubscribe failed, properties:{}", properties,
 						e);
 			}
@@ -186,8 +181,8 @@ public class NacosWatch implements ApplicationEventPublisherAware, SmartLifecycl
 	public void nacosServicesWatch() {
 
 		// nacos doesn't support watch now , publish an event every 30 seconds.
-		this.publisher.publishEvent(
-				new HeartbeatEvent(this, nacosWatchIndex.getAndIncrement()));
+		//三十秒发送一次心跳事件
+		this.publisher.publishEvent(new HeartbeatEvent(this, nacosWatchIndex.getAndIncrement()));
 
 	}
 

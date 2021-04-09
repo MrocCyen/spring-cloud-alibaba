@@ -30,14 +30,14 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnNacosDiscoveryEnabled
 public class NacosServiceAutoConfiguration {
 
-    /**
-     * 向容器注入NacosServiceManager
-     *
-     * @return
-     */
-    @Bean
-    public NacosServiceManager nacosServiceManager() {
-        return new NacosServiceManager();
-    }
+	/**
+	 * 向容器注入NacosServiceManager
+	 *
+	 * @return
+	 */
+	@Bean
+	public NacosServiceManager nacosServiceManager() {
+		return new NacosServiceManager();
+	}
 
 }

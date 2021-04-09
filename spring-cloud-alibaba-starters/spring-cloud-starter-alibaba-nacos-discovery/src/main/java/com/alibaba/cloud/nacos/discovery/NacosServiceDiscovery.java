@@ -36,84 +36,88 @@ import org.springframework.cloud.client.ServiceInstance;
  **/
 public class NacosServiceDiscovery {
 
-	private NacosDiscoveryProperties discoveryProperties;
+    private NacosDiscoveryProperties discoveryProperties;
 
-	private NacosServiceManager nacosServiceManager;
+    //命名服务管理
+    private NacosServiceManager nacosServiceManager;
 
-	public NacosServiceDiscovery(NacosDiscoveryProperties discoveryProperties,
-			NacosServiceManager nacosServiceManager) {
-		this.discoveryProperties = discoveryProperties;
-		this.nacosServiceManager = nacosServiceManager;
-	}
+    public NacosServiceDiscovery(NacosDiscoveryProperties discoveryProperties,
+                                 NacosServiceManager nacosServiceManager) {
+        this.discoveryProperties = discoveryProperties;
+        this.nacosServiceManager = nacosServiceManager;
+    }
 
-	/**
-	 * Return all instances for the given service.
-	 * @param serviceId id of service
-	 * @return list of instances
-	 * @throws NacosException nacosException
-	 */
-	public List<ServiceInstance> getInstances(String serviceId) throws NacosException {
-		String group = discoveryProperties.getGroup();
-		List<Instance> instances = namingService().selectInstances(serviceId, group,
-				true);
-		return hostToServiceInstanceList(instances, serviceId);
-	}
+    /**
+     * Return all instances for the given service.
+     *
+     * @param serviceId id of service
+     * @return list of instances
+     * @throws NacosException nacosException
+     */
+    public List<ServiceInstance> getInstances(String serviceId) throws NacosException {
+        //获得分组名称
+        String group = discoveryProperties.getGroup();
+        //返回所有的健康的服务实例
+        List<Instance> instances = namingService().selectInstances(serviceId, group, true);
 
-	/**
-	 * Return the names of all services.
-	 * @return list of service names
-	 * @throws NacosException nacosException
-	 */
-	public List<String> getServices() throws NacosException {
-		String group = discoveryProperties.getGroup();
-		ListView<String> services = namingService().getServicesOfServer(1,
-				Integer.MAX_VALUE, group);
-		return services.getData();
-	}
+        return hostToServiceInstanceList(instances, serviceId);
+    }
 
-	public static List<ServiceInstance> hostToServiceInstanceList(
-			List<Instance> instances, String serviceId) {
-		List<ServiceInstance> result = new ArrayList<>(instances.size());
-		for (Instance instance : instances) {
-			ServiceInstance serviceInstance = hostToServiceInstance(instance, serviceId);
-			if (serviceInstance != null) {
-				result.add(serviceInstance);
-			}
-		}
-		return result;
-	}
+    /**
+     * Return the names of all services.
+     *
+     * @return list of service names
+     * @throws NacosException nacosException
+     */
+    public List<String> getServices() throws NacosException {
+        String group = discoveryProperties.getGroup();
+        ListView<String> services = namingService().getServicesOfServer(1, Integer.MAX_VALUE, group);
+        return services.getData();
+    }
 
-	public static ServiceInstance hostToServiceInstance(Instance instance,
-			String serviceId) {
-		if (instance == null || !instance.isEnabled() || !instance.isHealthy()) {
-			return null;
-		}
-		NacosServiceInstance nacosServiceInstance = new NacosServiceInstance();
-		nacosServiceInstance.setHost(instance.getIp());
-		nacosServiceInstance.setPort(instance.getPort());
-		nacosServiceInstance.setServiceId(serviceId);
+    public static List<ServiceInstance> hostToServiceInstanceList(List<Instance> instances,
+                                                                  String serviceId) {
+        List<ServiceInstance> result = new ArrayList<>(instances.size());
+        for (Instance instance : instances) {
+            ServiceInstance serviceInstance = hostToServiceInstance(instance, serviceId);
+            if (serviceInstance != null) {
+                result.add(serviceInstance);
+            }
+        }
+        return result;
+    }
 
-		Map<String, String> metadata = new HashMap<>();
-		metadata.put("nacos.instanceId", instance.getInstanceId());
-		metadata.put("nacos.weight", instance.getWeight() + "");
-		metadata.put("nacos.healthy", instance.isHealthy() + "");
-		metadata.put("nacos.cluster", instance.getClusterName() + "");
-		if (instance.getMetadata() != null) {
-			metadata.putAll(instance.getMetadata());
-		}
-		metadata.put("nacos.ephemeral", String.valueOf(instance.isEphemeral()));
-		nacosServiceInstance.setMetadata(metadata);
+    public static ServiceInstance hostToServiceInstance(Instance instance,
+                                                        String serviceId) {
+        if (instance == null || !instance.isEnabled() || !instance.isHealthy()) {
+            return null;
+        }
+        //使用NacosServiceInstance包装一下
+        NacosServiceInstance nacosServiceInstance = new NacosServiceInstance();
+        nacosServiceInstance.setHost(instance.getIp());
+        nacosServiceInstance.setPort(instance.getPort());
+        nacosServiceInstance.setServiceId(serviceId);
 
-		if (metadata.containsKey("secure")) {
-			boolean secure = Boolean.parseBoolean(metadata.get("secure"));
-			nacosServiceInstance.setSecure(secure);
-		}
-		return nacosServiceInstance;
-	}
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("nacos.instanceId", instance.getInstanceId());
+        metadata.put("nacos.weight", instance.getWeight() + "");
+        metadata.put("nacos.healthy", instance.isHealthy() + "");
+        metadata.put("nacos.cluster", instance.getClusterName() + "");
+        if (instance.getMetadata() != null) {
+            metadata.putAll(instance.getMetadata());
+        }
+        metadata.put("nacos.ephemeral", String.valueOf(instance.isEphemeral()));
+        nacosServiceInstance.setMetadata(metadata);
 
-	private NamingService namingService() {
-		return nacosServiceManager
-				.getNamingService(discoveryProperties.getNacosProperties());
-	}
+        if (metadata.containsKey("secure")) {
+            boolean secure = Boolean.parseBoolean(metadata.get("secure"));
+            nacosServiceInstance.setSecure(secure);
+        }
+        return nacosServiceInstance;
+    }
+
+    private NamingService namingService() {
+        return nacosServiceManager.getNamingService(discoveryProperties.getNacosProperties());
+    }
 
 }

@@ -39,6 +39,7 @@ public class NacosDiscoveryClient implements DiscoveryClient {
 	 */
 	public static final String DESCRIPTION = "Spring Cloud Nacos Discovery Client";
 
+	//nacos服务发现
 	private NacosServiceDiscovery serviceDiscovery;
 
 	public NacosDiscoveryClient(NacosServiceDiscovery nacosServiceDiscovery) {
@@ -54,8 +55,7 @@ public class NacosDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		try {
 			return serviceDiscovery.getInstances(serviceId);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new RuntimeException(
 					"Can not get hosts from nacos server. serviceId: " + serviceId, e);
 		}
@@ -65,8 +65,7 @@ public class NacosDiscoveryClient implements DiscoveryClient {
 	public List<String> getServices() {
 		try {
 			return serviceDiscovery.getServices();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			log.error("get service name from nacos server fail,", e);
 			return Collections.emptyList();
 		}

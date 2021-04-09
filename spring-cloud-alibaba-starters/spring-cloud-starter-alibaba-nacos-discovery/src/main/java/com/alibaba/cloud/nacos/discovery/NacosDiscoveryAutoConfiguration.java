@@ -29,24 +29,24 @@ import org.springframework.context.annotation.Configuration;
  * @author <a href="mailto:echooy.mxq@gmail.com">echooymxq</a>
  **/
 @Configuration(proxyBeanMethods = false)
+//两个开关
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnNacosDiscoveryEnabled
 public class NacosDiscoveryAutoConfiguration {
 
-    //注入NacosDiscoveryProperties
-    @Bean
-    @ConditionalOnMissingBean
-    public NacosDiscoveryProperties nacosProperties() {
-        return new NacosDiscoveryProperties();
-    }
+	//注入NacosDiscoveryProperties
+	@Bean
+	@ConditionalOnMissingBean
+	public NacosDiscoveryProperties nacosProperties() {
+		return new NacosDiscoveryProperties();
+	}
 
-    //注入nacos服务发现客户端
-    @Bean
-    @ConditionalOnMissingBean
-    public NacosServiceDiscovery nacosServiceDiscovery(
-            NacosDiscoveryProperties discoveryProperties,
-            NacosServiceManager nacosServiceManager) {
-        return new NacosServiceDiscovery(discoveryProperties, nacosServiceManager);
-    }
+	//注入nacos服务发现客户端
+	@Bean
+	@ConditionalOnMissingBean
+	public NacosServiceDiscovery nacosServiceDiscovery(NacosDiscoveryProperties discoveryProperties,
+	                                                   NacosServiceManager nacosServiceManager) {
+		return new NacosServiceDiscovery(discoveryProperties, nacosServiceManager);
+	}
 
 }
